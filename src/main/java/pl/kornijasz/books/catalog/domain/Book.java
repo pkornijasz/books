@@ -2,12 +2,23 @@ package pl.kornijasz.books.catalog.domain;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
+@Setter
 @RequiredArgsConstructor
 @ToString
 public class Book {
-    private final Long id;
-    private final String title;
-    private final String author;
-    private final Integer year;
+    private Long id;
+    private String title;
+    private String author;
+    private Integer year;
+    private BigDecimal price;
+
+    public Book(String title, String author, Integer year, BigDecimal price) {
+        this.title = title;
+        this.author = author;
+        this.year = year;
+        this.price = price;
+    }
 }
