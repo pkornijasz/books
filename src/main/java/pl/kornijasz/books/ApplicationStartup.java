@@ -5,7 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
 import pl.kornijasz.books.catalog.domain.Book;
-import pl.kornijasz.books.order.application.port.PlaceOrderUseCase;
+import pl.kornijasz.books.order.application.port.ManipulateOrderUseCase;
 import pl.kornijasz.books.order.application.port.QueryOrderUseCase;
 import pl.kornijasz.books.order.domain.OrderItem;
 import pl.kornijasz.books.order.domain.Recipient;
@@ -14,19 +14,19 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.*;
-import static pl.kornijasz.books.order.application.port.PlaceOrderUseCase.*;
+import static pl.kornijasz.books.order.application.port.ManipulateOrderUseCase.*;
 
 @Component
 class ApplicationStartup implements CommandLineRunner {
 
     private final CatalogUseCase catalog;
-    private final PlaceOrderUseCase placeOrder;
+    private final ManipulateOrderUseCase placeOrder;
     private final QueryOrderUseCase queryOrder;
     private final String title;
     private final String author;
     private final Long limit;
 
-    public ApplicationStartup(CatalogUseCase catalog, PlaceOrderUseCase placeOrder, QueryOrderUseCase queryOrder, @Value("${books.catalog.title}") String title, @Value("${books.catalog.author}") String author, @Value("${books.catalog.limit:3}") Long limit) {
+    public ApplicationStartup(CatalogUseCase catalog, ManipulateOrderUseCase placeOrder, QueryOrderUseCase queryOrder, @Value("${books.catalog.title}") String title, @Value("${books.catalog.author}") String author, @Value("${books.catalog.limit:3}") Long limit) {
         this.catalog = catalog;
         this.placeOrder = placeOrder;
         this.queryOrder = queryOrder;

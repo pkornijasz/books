@@ -2,17 +2,14 @@ package pl.kornijasz.books.order.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.kornijasz.books.order.application.port.PlaceOrderUseCase;
+import pl.kornijasz.books.order.application.port.ManipulateOrderUseCase;
 import pl.kornijasz.books.order.domain.Order;
 import pl.kornijasz.books.order.domain.OrderRepository;
-
-import java.util.Collections;
-
-import static java.util.Collections.*;
+import pl.kornijasz.books.order.domain.OrderStatus;
 
 @Service
 @RequiredArgsConstructor
-public class PlaceOrderService implements PlaceOrderUseCase {
+public class ManipulateOrderService implements ManipulateOrderUseCase {
     private final OrderRepository repository;
 
     @Override
@@ -24,5 +21,15 @@ public class PlaceOrderService implements PlaceOrderUseCase {
                 .build();
         Order save = repository.save(order);
         return PlaceOrderResponse.success(save.getId());
+    }
+
+    @Override
+    public void updateOrderStatus(Long id, OrderStatus status) {
+        repository.updateOrderStatus(id, status);
+    }
+
+    @Override
+    public void deleteOrderById(Long id) {
+        repository.deleteById(id);
     }
 }
