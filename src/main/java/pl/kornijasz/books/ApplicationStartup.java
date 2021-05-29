@@ -80,7 +80,7 @@ class ApplicationStartup implements CommandLineRunner {
     private void initData() {
         catalog.addBook(new CreateBookCommand("Harry Potter i Komnata Tajemnic", "JK Rowling", 1998, new BigDecimal("29.90")));
         catalog.addBook(new CreateBookCommand("Władca Pierścieni: Dwie Wieże", "JRR Tolkien", 1954, new BigDecimal("29.90")));
-        catalog.addBook(new CreateBookCommand("Mężczyżni, którzy nienawidzą kobiet", "Stieg Larsson", 2005, new BigDecimal("29.90")));
+        catalog.addBook(new CreateBookCommand("Mężczyźni, którzy nienawidzą kobiet", "Stieg Larsson", 2005, new BigDecimal("29.90")));
         catalog.addBook(new CreateBookCommand("Sezon Burz", "Andrzej Sapkowski", 2013, new BigDecimal("29.90")));
         catalog.addBook(new CreateBookCommand("Pan Tadeusz", "Adam Mickiewicz", 1834, new BigDecimal("19.90")));
         catalog.addBook(new CreateBookCommand("Ogniem i Mieczem", "Henryk Sienkiewicz", 1884, new BigDecimal("29.90")));

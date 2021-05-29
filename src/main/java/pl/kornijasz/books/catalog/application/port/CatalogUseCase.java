@@ -1,5 +1,6 @@
 package pl.kornijasz.books.catalog.application.port;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 import pl.kornijasz.books.catalog.domain.Book;
@@ -11,19 +12,40 @@ import java.util.Optional;
 import static java.util.Collections.emptyList;
 
 public interface CatalogUseCase {
-    List<Book> findByTitle(String title);
-
-    Optional<Book> findOneByTitle(String title);
 
     List<Book> findAll();
 
+    Optional<Book> findById(Long id);
+
+    List<Book> findByTitle(String title);
+
+    List<Book> findByAuthor(String author);
+
+    List<Book> findByTitleAndAuthor(String title, String author);
+
+    Optional<Book> findOneByTitle(String title);
+
+    Optional<Book> findOneByAuthor(String author);
+
     Optional<Book> findOneByTitleAndAuthor(String title, String author);
 
-    void addBook(CreateBookCommand command);
+    Book addBook(CreateBookCommand command);
 
     void removeById(Long id);
 
     UpdateBookResponse updateBook(UpdateBookCommand command);
+
+    void updateBookCover(UpdateBookCoverCommand command);
+
+    void removeBookCover(Long id);
+
+    @Value
+    class UpdateBookCoverCommand {
+        Long id;
+        byte[] file;
+        String contentType;
+        String filename;
+    }
 
     @Value
     class CreateBookCommand {
@@ -39,6 +61,7 @@ public interface CatalogUseCase {
 
     @Value
     @Builder
+    @AllArgsConstructor
     class UpdateBookCommand {
         Long id;
         String title;
