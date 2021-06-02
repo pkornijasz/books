@@ -3,14 +3,15 @@ package pl.kornijasz.books.order.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kornijasz.books.order.application.port.ManipulateOrderUseCase;
+import pl.kornijasz.books.order.db.OrderJpaRepository;
 import pl.kornijasz.books.order.domain.Order;
-import pl.kornijasz.books.order.domain.OrderRepository;
 import pl.kornijasz.books.order.domain.OrderStatus;
 
 @Service
 @RequiredArgsConstructor
 public class ManipulateOrderService implements ManipulateOrderUseCase {
-    private final OrderRepository repository;
+
+    private final OrderJpaRepository repository;
 
     @Override
     public PlaceOrderResponse placeOrder(PlaceOrderCommand command) {
@@ -25,7 +26,11 @@ public class ManipulateOrderService implements ManipulateOrderUseCase {
 
     @Override
     public void updateOrderStatus(Long id, OrderStatus status) {
-        repository.updateOrderStatus(id, status);
+        repository.findById(id)
+                .ifPresent(order -> {
+                    order.setStatus(status);
+                    repository.save(order);
+                });
     }
 
     @Override

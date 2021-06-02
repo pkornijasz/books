@@ -8,6 +8,7 @@ import pl.kornijasz.books.catalog.domain.Book;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
@@ -19,21 +20,17 @@ public interface CatalogUseCase {
 
     List<Book> findByTitle(String title);
 
+    Optional<Book> findOneByTitle(String title);
+
     List<Book> findByAuthor(String author);
 
     List<Book> findByTitleAndAuthor(String title, String author);
 
-    Optional<Book> findOneByTitle(String title);
-
-    Optional<Book> findOneByAuthor(String author);
-
-    Optional<Book> findOneByTitleAndAuthor(String title, String author);
-
     Book addBook(CreateBookCommand command);
 
-    void removeById(Long id);
-
     UpdateBookResponse updateBook(UpdateBookCommand command);
+
+    void removeById(Long id);
 
     void updateBookCover(UpdateBookCoverCommand command);
 
@@ -50,40 +47,18 @@ public interface CatalogUseCase {
     @Value
     class CreateBookCommand {
         String title;
-        String author;
+        Set<Long> authors;
         Integer year;
         BigDecimal price;
-
-        public Book toBook() {
-           return new Book(title, author, year, price);
-        }
     }
 
     @Value
-    @Builder
-    @AllArgsConstructor
     class UpdateBookCommand {
         Long id;
         String title;
-        String author;
+        Set<Long> authors;
         Integer year;
         BigDecimal price;
-
-        public Book updateFields(Book book) {
-            if (title != null) {
-                book.setTitle(title);
-            }
-            if (author != null) {
-                book.setAuthor(author);
-            }
-            if (year != null) {
-                book.setYear(year);
-            }
-            if (price != null) {
-                book.setPrice(price);
-            }
-            return book;
-        }
     }
 
     @Value

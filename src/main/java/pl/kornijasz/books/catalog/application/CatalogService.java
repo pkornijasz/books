@@ -3,23 +3,27 @@ package pl.kornijasz.books.catalog.application;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
+import pl.kornijasz.books.catalog.db.AuthorJpaRepository;
+import pl.kornijasz.books.catalog.db.BookJpaRepository;
+import pl.kornijasz.books.catalog.domain.Author;
 import pl.kornijasz.books.catalog.domain.Book;
-import pl.kornijasz.books.catalog.domain.CatalogRepository;
 import pl.kornijasz.books.uploads.application.port.UploadUseCase;
 import pl.kornijasz.books.uploads.domain.Upload;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pl.kornijasz.books.uploads.application.port.UploadUseCase.*;
+import static pl.kornijasz.books.uploads.application.port.UploadUseCase.SaveUploadCommand;
 
 @Service
 @AllArgsConstructor
 class CatalogService implements CatalogUseCase {
 
-    private final CatalogRepository repository;
+    private final BookJpaRepository repository;
+    private final AuthorJpaRepository authorRepository;
     private final UploadUseCase upload;
 
     @Override
@@ -34,74 +38,79 @@ class CatalogService implements CatalogUseCase {
 
     @Override
     public List<Book> findByTitle(String title) {
-        return repository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .collect(Collectors.toList());
+        return repository.findByTitleStartsWithIgnoreCase(title);
     }
 
     @Override
     public List<Book> findByAuthor(String author) {
-        return repository.findAll()
-                .stream()
-                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
-                .collect(Collectors.toList());
+//        return repository.findByAuthors_firstNameContainsIgnoreCaseOrAuthors_lastNameContainsIgnoreCase(author, author);
+        return repository.findByAuthor(author);
     }
 
     @Override
     public List<Book> findByTitleAndAuthor(String title, String author) {
-        return repository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
-                .collect(Collectors.toList());
+        return repository.findByTitleAndAuthor(title ,author);
     }
 
     @Override
     public Optional<Book> findOneByTitle(String title) {
-        return repository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().contains(title))
-                .findFirst();
-    }
-
-    @Override
-    public Optional<Book> findOneByAuthor(String author) {
-        return repository.findAll()
-                .stream()
-                .filter(book -> book.getAuthor().contains(author))
-                .findFirst();
-    }
-
-    @Override
-    public Optional<Book> findOneByTitleAndAuthor(String title, String author) {
-        return repository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().contains(title))
-                .filter(book -> book.getAuthor().contains(author))
-                .findFirst();
+        return repository.findDistinctFirstByTitleStartsWithIgnoreCase(title);
     }
 
     @Override
     public Book addBook(CreateBookCommand command) {
-        Book book = command.toBook();
+        Book book = toBook(command);
         return repository.save(book);
+    }
+
+    private Book toBook(CreateBookCommand command) {
+        Book book = new Book(command.getTitle(), command.getYear(), command.getPrice());
+        Set<Author> authors = fetchAuthorsByIds(command.getAuthors());
+        book.setAuthors(authors);
+        return book;
+    }
+
+    private Set<Author> fetchAuthorsByIds(Set<Long> authors) {
+        return authors
+                .stream()
+                .map(authorId -> authorRepository
+                        .findById(authorId)
+                        .orElseThrow(() -> new IllegalArgumentException("Unable to find author with id: " + authorId))
+                ).collect(Collectors.toSet());
     }
 
     @Override
     public void removeById(Long id) {
-        repository.removeById(id);
+        repository.deleteById(id);
     }
 
     @Override
     public UpdateBookResponse updateBook(UpdateBookCommand command) {
-        return repository
-                .findById(command.getId())
+        return repository.findById(command.getId())
                 .map(book -> {
-                    Book updatedBook = command.updateFields(book);
+                    Book updatedBook = updateFields(command, book);
                     repository.save(updatedBook);
                     return UpdateBookResponse.SUCCESS;
                 }).orElseGet(() -> new UpdateBookResponse(false, Arrays.asList("Book not found with id: " + command.getId())));
+    }
+
+    private Book updateFields(UpdateBookCommand command, Book book) {
+
+        if (command.getTitle() != null) {
+            book.setTitle(command.getTitle());
+        }
+
+        if (command.getAuthors() != null && !command.getAuthors().isEmpty()) {
+            book.setAuthors(fetchAuthorsByIds(command.getAuthors()));
+        }
+
+        if (command.getYear() != null) {
+            book.setYear(command.getYear());
+        }
+        if (command.getPrice() != null) {
+            book.setPrice(command.getPrice());
+        }
+        return book;
     }
 
     @Override

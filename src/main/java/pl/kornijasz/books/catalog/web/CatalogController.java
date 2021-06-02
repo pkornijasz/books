@@ -16,6 +16,7 @@ import pl.kornijasz.books.catalog.domain.Book;
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -36,8 +37,7 @@ public class CatalogController {
     @ResponseStatus(HttpStatus.OK)
     public List<Book> getAll(
             @RequestParam Optional<String> title,
-            @RequestParam Optional<String> author
-    ) {
+            @RequestParam Optional<String> author) {
         if (title.isPresent() && author.isPresent()) {
             return catalog.findByTitleAndAuthor(title.get(), author.get());
         } else if (title.isPresent()) {
@@ -61,21 +61,11 @@ public class CatalogController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateBook(@PathVariable Long id, @Valid @RequestBody RestBookCommand command) {
+    public void updateBook(@PathVariable Long id, @RequestBody RestBookCommand command) {
         UpdateBookResponse response = catalog.updateBook(command.toUpdateCommand(id));
         if (!response.isSuccess()) {
             String message = String.join(", ", response.getErrors());
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
-        }
-    }
-
-    @PatchMapping("/{id}")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public void patchBook(@PathVariable Long id, @RequestBody RestBookCommand command) {
-        UpdateBookResponse response = catalog.updateBook(command.toUpdateCommand(id));
-        if (!response.isSuccess()) {
-            String message = String.join(", ", response.getErrors());
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
     }
 
@@ -111,22 +101,26 @@ public class CatalogController {
 
     @Data
     private static class RestBookCommand {
+
         @NotBlank(message = "Please provide a title")
         private String title;
-        @NotBlank(message = "Please provide an author")
-        private String author;
+
+        @NotEmpty
+        private Set<Long> authors;
+
         @NotNull
         private Integer year;
+
         @NotNull
         @DecimalMin("0.00")
         private BigDecimal price;
 
         CreateBookCommand toCreateCommand() {
-            return new CreateBookCommand(title, author, year, price);
+            return new CreateBookCommand(title, authors, year, price);
         }
 
         UpdateBookCommand toUpdateCommand(Long id) {
-            return new UpdateBookCommand(id, title, author, year, price);
+            return new UpdateBookCommand(id, title, authors, year, price);
         }
     }
 }
