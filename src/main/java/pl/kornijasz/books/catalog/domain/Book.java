@@ -1,7 +1,11 @@
 package pl.kornijasz.books.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import pl.kornijasz.books.jpa.BaseEntity;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -13,15 +17,17 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString(exclude = "authors")
 @Entity
-public class Book {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Book extends BaseEntity {
+
     private String title;
+
     private Integer year;
+
     private BigDecimal price;
+
     private Long coverId;
-    @ManyToMany(fetch = FetchType.EAGER)
+
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable
     @JsonIgnoreProperties("books")
     private Set<Author> authors = new HashSet<>();

@@ -31,6 +31,12 @@
 <!--            <artifactId>hibernate-validator</artifactId>-->
 <!--            <version>6.2.0.Final</version>-->
 <!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.yannbriancon</groupId>-->
+<!--            <artifactId>spring-hibernate-query-utils</artifactId>-->
+<!--            <version>2.0.0</version>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>

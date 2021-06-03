@@ -1,9 +1,13 @@
 package pl.kornijasz.books.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import pl.kornijasz.books.jpa.BaseEntity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -16,17 +20,13 @@ import java.util.Set;
 @ToString(exclude = "books")
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-public class Author {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Author extends BaseEntity {
 
     private String firstName;
 
     private String lastName;
 
-    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "authors")
+    @ManyToMany(mappedBy = "authors", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JsonIgnoreProperties("authors")
     private Set<Book> books = new HashSet<>();
 

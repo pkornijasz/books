@@ -1,22 +1,19 @@
 package pl.kornijasz.books.uploads.domain;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Value;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import pl.kornijasz.books.jpa.BaseEntity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
-public class Upload {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@EntityListeners(AuditingEntityListener.class)
+public class Upload extends BaseEntity {
 
     private String filename;
 

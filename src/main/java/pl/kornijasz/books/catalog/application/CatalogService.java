@@ -2,6 +2,7 @@ package pl.kornijasz.books.catalog.application;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
 import pl.kornijasz.books.catalog.db.AuthorJpaRepository;
 import pl.kornijasz.books.catalog.db.BookJpaRepository;
@@ -28,7 +29,8 @@ class CatalogService implements CatalogUseCase {
 
     @Override
     public List<Book> findAll() {
-        return repository.findAll();
+        return repository.findAllEager();
+//        return repository.findAll();
     }
 
     @Override
@@ -58,6 +60,7 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
+    @Transactional
     public Book addBook(CreateBookCommand command) {
         Book book = toBook(command);
         return repository.save(book);
@@ -90,11 +93,12 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
+    @Transactional
     public UpdateBookResponse updateBook(UpdateBookCommand command) {
         return repository.findById(command.getId())
                 .map(book -> {
                     Book updatedBook = updateFields(command, book);
-                    repository.save(updatedBook);
+//                    repository.save(updatedBook); -> wystarczy @Transactional
                     return UpdateBookResponse.SUCCESS;
                 }).orElseGet(() -> new UpdateBookResponse(false, Arrays.asList("Book not found with id: " + command.getId())));
     }
