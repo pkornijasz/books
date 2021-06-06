@@ -14,10 +14,7 @@ import pl.kornijasz.books.catalog.application.port.CatalogUseCase.UpdateBookComm
 import pl.kornijasz.books.catalog.domain.Book;
 
 import javax.validation.Valid;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -115,8 +112,12 @@ public class CatalogController {
         @DecimalMin("0.00")
         private BigDecimal price;
 
+        @NotNull
+        @PositiveOrZero
+        private Long available;
+
         CreateBookCommand toCreateCommand() {
-            return new CreateBookCommand(title, authors, year, price);
+            return new CreateBookCommand(title, authors, year, price, available);
         }
 
         UpdateBookCommand toUpdateCommand(Long id) {

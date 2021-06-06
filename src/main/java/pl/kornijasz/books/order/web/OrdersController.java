@@ -5,19 +5,28 @@ import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import pl.kornijasz.books.order.application.port.ManipulateOrderUseCase;
 import pl.kornijasz.books.order.application.port.QueryOrderUseCase;
 import pl.kornijasz.books.order.application.port.QueryOrderUseCase.RichOrder;
 import pl.kornijasz.books.order.domain.Order;
+import pl.kornijasz.books.order.domain.OrderItem;
+import pl.kornijasz.books.order.domain.OrderStatus;
 import pl.kornijasz.books.order.domain.Recipient;
+import pl.kornijasz.books.web.CreatedURI;
 
+import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.ACCEPTED;
+import static pl.kornijasz.books.order.application.port.ManipulateOrderUseCase.*;
 import static pl.kornijasz.books.order.application.port.ManipulateOrderUseCase.PlaceOrderCommand;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/orders")
-@AllArgsConstructor
 public class OrdersController {
 
     private final ManipulateOrderUseCase manipulateOrder;
@@ -37,34 +46,37 @@ public class OrdersController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void placeOrder(@RequestBody PlaceOrderCommand command) {
-        manipulateOrder.placeOrder(command);
+    @ResponseStatus(CREATED)
+    public ResponseEntity<Object> createOrder(@RequestBody PlaceOrderCommand command) {
+        return manipulateOrder
+                .placeOrder(command)
+                .handle(
+                        orderId -> ResponseEntity.created(orderUri(orderId)).build(),
+                        error -> ResponseEntity.badRequest().body(error)
+                );
+    }
+
+    URI orderUri(Long orderId) {
+        return new CreatedURI("/" + orderId).uri();
     }
 
     @PutMapping("/{id}/status")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateOrderStatus(@PathVariable Long id, @RequestBody Order order) {
-        manipulateOrder.updateOrderStatus(id, order.getStatus());
+    @ResponseStatus(ACCEPTED)
+    public void updateOrderStatus(@PathVariable Long id, @RequestBody UpdateStatusCommand command) {
+        OrderStatus orderStatus = OrderStatus
+                .parseString(command.status)
+                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "Unknown status: " + command.status));
+        manipulateOrder.updateOrderStatus(id, orderStatus);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable Long id) {
+    @ResponseStatus(NO_CONTENT)
+    public void deleteOrder(@PathVariable Long id) {
         manipulateOrder.deleteOrderById(id);
     }
 
     @Data
-    static class RecipientCommand {
-        String name;
-        String phone;
-        String street;
-        String city;
-        String zipCode;
-        String email;
-
-        Recipient toRecipient() {
-            return new Recipient(name, phone, street, city, zipCode, email);
-        }
+    static class UpdateStatusCommand {
+        String status;
     }
 }

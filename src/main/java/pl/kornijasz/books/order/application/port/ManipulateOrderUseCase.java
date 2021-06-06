@@ -1,15 +1,14 @@
 package pl.kornijasz.books.order.application.port;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Singular;
-import lombok.Value;
+import lombok.*;
+import pl.kornijasz.books.commons.Either;
 import pl.kornijasz.books.order.domain.OrderItem;
 import pl.kornijasz.books.order.domain.OrderStatus;
 import pl.kornijasz.books.order.domain.Recipient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
@@ -26,28 +25,27 @@ public interface ManipulateOrderUseCase {
     @AllArgsConstructor
     class PlaceOrderCommand {
         @Singular
-        List<OrderItem> items;
+        Set<OrderItemCommand> items;
         Recipient recipient;
     }
 
     @Value
-    class PlaceOrderItem {
+    static class OrderItemCommand {
         Long bookId;
         int quantity;
     }
 
-    @Value
-    class PlaceOrderResponse {
-        boolean success;
-        Long orderId;
-        List<String> errors;
-
-        public static PlaceOrderResponse success(Long orderId) {
-            return new PlaceOrderResponse(true, orderId, emptyList());
+    class PlaceOrderResponse extends Either<String, Long> {
+        public PlaceOrderResponse(boolean success, String left, Long right) {
+            super(success, left, right);
         }
 
-        public static PlaceOrderResponse failure(String... errors) {
-            return new PlaceOrderResponse(false, null, Arrays.asList(errors));
+        public static PlaceOrderResponse success(Long orderId) {
+            return new PlaceOrderResponse(true, null, orderId);
+        }
+
+        public static PlaceOrderResponse failure(String error) {
+            return new PlaceOrderResponse(false, error, null);
         }
     }
 }

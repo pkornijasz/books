@@ -10,6 +10,7 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -27,7 +28,7 @@ public class Order extends BaseEntity {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipient_id")
-    private List<OrderItem> items;
+    private Set<OrderItem> items;
 
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })// @ManyToOne EAGER is default!
 //    @JoinColumn(name = "order_id")
@@ -39,9 +40,7 @@ public class Order extends BaseEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public Order(OrderStatus status, List<OrderItem> items, Recipient recipient) {
-        this.status = status;
-        this.items = items;
-        this.recipient = recipient;
+    public void updateStatus(OrderStatus newStatus) {
+        this.status = status.updateStatus(newStatus);
     }
 }

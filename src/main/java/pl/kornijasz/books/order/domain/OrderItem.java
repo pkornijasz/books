@@ -4,10 +4,7 @@ import lombok.*;
 import pl.kornijasz.books.catalog.domain.Book;
 import pl.kornijasz.books.jpa.BaseEntity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -15,9 +12,8 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @Entity
 public class OrderItem extends BaseEntity {
-
-    private Long bookId;
-
+    @ManyToOne
+    @JoinColumn(name = "book_id")
+    private Book book;
     private int quantity;
-
 }
