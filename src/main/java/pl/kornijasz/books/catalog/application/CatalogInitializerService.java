@@ -9,8 +9,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import pl.kornijasz.books.catalog.application.port.CatalogInitializerUseCase;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
 import pl.kornijasz.books.catalog.db.AuthorJpaRepository;
@@ -30,9 +33,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.*;
 import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.CreateBookCommand;
 
-@Slf4j@Service
+@Slf4j
+@Service
 @AllArgsConstructor
 public class CatalogInitializerService implements CatalogInitializerUseCase {
 
@@ -40,7 +45,7 @@ public class CatalogInitializerService implements CatalogInitializerUseCase {
     private final ManipulateOrderUseCase placeOrder;
     private final QueryOrderUseCase queryOrder;
     private final AuthorJpaRepository authorJpaRepository;
-
+    private final RestTemplate restTemplate;
 
     @Override
     @Transactional
@@ -63,7 +68,6 @@ public class CatalogInitializerService implements CatalogInitializerUseCase {
     }
 
     private void initBook(CsvBook csvBook) {
-        // parse authors
         Set<Long> authors = Arrays.stream(csvBook.authors.split(","))
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
@@ -78,10 +82,17 @@ public class CatalogInitializerService implements CatalogInitializerUseCase {
                 csvBook.amount,
                 50L
         );
-        catalog.addBook(command);
-        // upload thumbnail
+        Book book = catalog.addBook(command);
+        catalog.updateBookCover(updateBookCoverCommand(book.getId(), csvBook.thumbnail));
     }
-    // metoda albo pobierze autora z bazy a jak nie znajdzie, to utworzy nową encję
+
+    private UpdateBookCoverCommand updateBookCoverCommand(Long bookId, String thumbnailUrl) {
+        ResponseEntity<byte[]> response = restTemplate.exchange(thumbnailUrl, HttpMethod.GET, null, byte[].class);
+        String contentType = response.getHeaders().getContentType().toString();
+        return new UpdateBookCoverCommand(bookId, response.getBody(), contentType ,"cover");
+    }
+
+    // metoda pobierze autora z bazy, a jak go nie znajdzie to zapisze nowego autora
     private Author getOrCreateAuthor(String name) {
         return authorJpaRepository
                 .findByNameIgnoreCase(name)
@@ -139,28 +150,5 @@ public class CatalogInitializerService implements CatalogInitializerUseCase {
         queryOrder.findAll()
                 .forEach(order -> log.info("GOT ORDER WITH TOTAL PRICE: " + order.totalPrice() + " DETAILS: " + order));
     }
-//
-//    private void initData() {
-//        Author joshua = new Author("Joshua", "Bloch");
-//        Author neal = new Author("Neal", "Gafter");
-//        authorJpaRepository.save(joshua);
-//        authorJpaRepository.save(neal);
-//
-//        CatalogUseCase.CreateBookCommand effectiveJava = new CatalogUseCase.CreateBookCommand(
-//                "Effective Java",
-//                Set.of(joshua.getId()),
-//                2005,
-//                new BigDecimal("79.00"),
-//                50L
-//        );
-//        CatalogUseCase.CreateBookCommand javaPuzzlers = new CatalogUseCase.CreateBookCommand(
-//                "Java Puzzlers",
-//                Set.of(joshua.getId(), neal.getId()),
-//                2018,
-//                new BigDecimal("99.00"),
-//                50L
-//        );
-//        catalog.addBook(javaPuzzlers);
-//        catalog.addBook(effectiveJava);
-//    }
+
 }

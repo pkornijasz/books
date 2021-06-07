@@ -18,7 +18,7 @@ import java.util.Set;
 @ToString(exclude = "authors")
 @Entity
 public class Book extends BaseEntity {
-
+    @Column(unique = true)
     private String title;
 
     private Integer year;
