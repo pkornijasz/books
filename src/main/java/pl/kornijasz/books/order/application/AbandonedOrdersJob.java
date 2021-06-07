@@ -1,6 +1,7 @@
 package pl.kornijasz.books.order.application;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class AbandonedOrdersJob {
@@ -27,9 +29,7 @@ public class AbandonedOrdersJob {
         Duration paymentPeriod = properties.getPaymentPeriod();
         LocalDateTime olderThan = LocalDateTime.now().minus(paymentPeriod); // .minusMinutes(5);
         List<Order> orders = repository.findByStatusAndCreatedAtLessThanEqual(OrderStatus.NEW, olderThan);
-        System.out.println("Found orders to be abandoned: " + orders.size());
+        log.info("Found orders to be abandoned: " + orders.size());
         orders.forEach(order -> orderUseCase.updateOrderStatus(order.getId(), OrderStatus.ABANDONED));
-        // find abandoned orders
-        // update status as abandoned
     }
 }
