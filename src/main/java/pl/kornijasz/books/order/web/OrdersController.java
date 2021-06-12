@@ -2,26 +2,21 @@ package pl.kornijasz.books.order.web;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pl.kornijasz.books.order.application.port.ManipulateOrderUseCase;
 import pl.kornijasz.books.order.application.port.QueryOrderUseCase;
-import pl.kornijasz.books.order.application.port.QueryOrderUseCase.RichOrder;
+import pl.kornijasz.books.order.application.RichOrder;
 import pl.kornijasz.books.order.domain.Order;
-import pl.kornijasz.books.order.domain.OrderItem;
 import pl.kornijasz.books.order.domain.OrderStatus;
-import pl.kornijasz.books.order.domain.Recipient;
 import pl.kornijasz.books.web.CreatedURI;
 
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.ACCEPTED;
-import static pl.kornijasz.books.order.application.port.ManipulateOrderUseCase.*;
 import static pl.kornijasz.books.order.application.port.ManipulateOrderUseCase.PlaceOrderCommand;
 
 @AllArgsConstructor

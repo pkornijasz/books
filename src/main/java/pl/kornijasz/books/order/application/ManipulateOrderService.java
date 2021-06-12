@@ -53,11 +53,13 @@ class ManipulateOrderService implements ManipulateOrderUseCase {
     }
 
     private OrderItem toOrderItem(OrderItemCommand command) {
-        Book book = bookJpaRepository.getById(command.getBookId());
+//        Book book = bookJpaRepository.getById(command.getBookId()); // od wersji 2.5.0!
+        Book book = bookJpaRepository.getOne(command.getBookId());
         int quantity = command.getQuantity();
         if (book.getAvailable() >= command.getQuantity()) {
             return new OrderItem(book, quantity);
-        } else throw new IllegalArgumentException("Too many copies of book " + book.getId() + " requested: " + quantity + " of " + book.getAvailable() + " available.");
+        }
+        throw new IllegalArgumentException("Too many copies of book " + book.getId() + " requested: " + quantity + " of " + book.getAvailable() + " available.");
     }
 
     @Override
