@@ -59,7 +59,8 @@ class ManipulateOrderService implements ManipulateOrderUseCase {
     }
 
     private OrderItem toOrderItem(OrderItemCommand command) {
-        Book book = bookJpaRepository.getOne(command.getBookId());
+//        Book book = bookJpaRepository.getOne(command.getBookId()); // deprecated >= 2.5.0
+        Book book = bookJpaRepository.getById(command.getBookId());
         int quantity = command.getQuantity();
         if (book.getAvailable() >= quantity) {
             return new OrderItem(book, quantity);

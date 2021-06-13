@@ -30,6 +30,13 @@ public interface ManipulateOrderUseCase {
     class OrderItemCommand {
         Long bookId;
         int quantity;
+
+        public OrderItemCommand(Long bookId, int quantity) {
+            this.bookId = bookId;
+            if (quantity >= 1) {
+                this.quantity = quantity;
+            } else throw new IllegalArgumentException("Quantity < 1");
+        }
     }
 
     @Value
