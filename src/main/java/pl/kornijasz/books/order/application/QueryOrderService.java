@@ -14,8 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class QueryOrderService implements QueryOrderUseCase {
-
+class QueryOrderService implements QueryOrderUseCase {
     private final OrderJpaRepository repository;
     private final BookJpaRepository catalogRepository;
 
@@ -29,8 +28,8 @@ public class QueryOrderService implements QueryOrderUseCase {
     }
 
     @Override
-    public Optional<Order> findById(Long id) {
-        return repository.findById(id);
+    public Optional<RichOrder> findById(Long id) {
+        return repository.findById(id).map(this::toRichOrder);
     }
 
     private RichOrder toRichOrder(Order order) {

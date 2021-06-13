@@ -10,6 +10,6 @@ public interface QueryOrderUseCase {
 
     List<RichOrder> findAll();
 
-    Optional<Order> findById(Long id);
+    Optional<RichOrder> findById(Long id);
 
 }

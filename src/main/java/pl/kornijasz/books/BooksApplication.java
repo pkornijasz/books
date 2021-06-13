@@ -11,7 +11,7 @@ import pl.kornijasz.books.order.application.OrdersProperties;
 
 @EnableScheduling
 @SpringBootApplication
-@EnableConfigurationProperties(OrdersProperties.class)
+@EnableConfigurationProperties({OrdersProperties.class})
 public class BooksApplication {
 
     public static void main(String[] args) {
