@@ -229,7 +229,7 @@ class OrderServiceTest {
     private Long placedOrder(Long bookId, int copies, String recipient) {
         PlaceOrderCommand command = PlaceOrderCommand
                 .builder()
-                .recipient(recipient())
+                .recipient(recipient(recipient))
                 .item(new OrderItemCommand(bookId, copies))
                 .build();
         PlaceOrderResponse response = service.placeOrder(command);
