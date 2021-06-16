@@ -248,7 +248,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void cheapestBookIsFreeWhenTotalOover400zlotys() {
+    void cheapestBookIsFreeWhenTotalOver400zlotys() {
         // given
         Book book = givenBook(50L ,"49.90");
 
