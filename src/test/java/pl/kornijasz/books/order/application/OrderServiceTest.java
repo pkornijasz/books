@@ -153,7 +153,7 @@ class OrderServiceTest {
     }
 
     @Test
-    // TODO-Darek: poprawic w module security
+    // TODO: poprawic w module security
     public void adminCanRevokeOtherUsersOrder() {
         // given
         Book effectiveJava = givenEffectiveJava(50L);
@@ -235,7 +235,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void cheapestBookIsHalfPriceWhenTotalOover200zlotys() {
+    void cheapestBookIsHalfPriceWhenTotalOver200zlotys() {
         // given
         Book book = givenBook(50L ,"49.90");
 

@@ -74,8 +74,7 @@ class AbandonedOrdersJobTest {
                 .recipient(recipient())
                 .item(new OrderItemCommand(bookId, copies))
                 .build();
-        PlaceOrderResponse response = manipulateOrderService.placeOrder(command);
-        return response.getRight();
+        return manipulateOrderService.placeOrder(command).getRight();
     }
 
     private Recipient recipient() {

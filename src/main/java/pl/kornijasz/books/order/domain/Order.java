@@ -27,11 +27,11 @@ public class Order extends BaseEntity {
     private OrderStatus status = OrderStatus.NEW;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "recipient_id")
+    @JoinColumn(name = "order_id")
+    @Singular
     private Set<OrderItem> items;
 
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })// @ManyToOne EAGER is default!
-//    @JoinColumn(name = "order_id")
     private Recipient recipient;
 
     @Builder.Default
@@ -57,6 +57,9 @@ public class Order extends BaseEntity {
     }
 
     public BigDecimal getDeliveryPrice() {
+        if (items.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
         return delivery.getPrice();
     }
 }
