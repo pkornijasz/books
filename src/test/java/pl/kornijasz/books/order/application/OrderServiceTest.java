@@ -10,6 +10,7 @@ import pl.kornijasz.books.catalog.db.BookJpaRepository;
 import pl.kornijasz.books.catalog.domain.Book;
 import pl.kornijasz.books.order.application.port.ManipulateOrderUseCase.*;
 import pl.kornijasz.books.order.application.port.QueryOrderUseCase;
+import pl.kornijasz.books.order.domain.Delivery;
 import pl.kornijasz.books.order.domain.OrderStatus;
 import pl.kornijasz.books.order.domain.Recipient;
 
@@ -206,6 +207,63 @@ class OrderServiceTest {
         assertTrue(exception.getMessage().contains("Too many copies of book " + effectiveJava.getId() + " requested"));
     }
 
+    @Test
+    void shippingCostsAreAddedToTotalOrderPrice() {
+        // given
+        Book book = givenBook(50L ,"49.90");
+
+        // when
+        Long orderId = placedOrder(book.getId(), 1);
+
+        // then
+        RichOrder order = orderOf(orderId);
+        assertEquals("59.80", order.getFinalPrice().toPlainString());
+    }
+
+    @Test
+    void shippingCostsAreDiscountedOver100zlotys() {
+        // given
+        Book book = givenBook(50L ,"49.90");
+
+        // when
+        Long orderId = placedOrder(book.getId(), 3);
+
+        // then
+        RichOrder order = orderOf(orderId);
+        assertEquals("149.70", order.getFinalPrice().toPlainString());
+        assertEquals("149.70", order.getOrderPrice().getItemsPrice().toPlainString());
+    }
+
+    @Test
+    void cheapestBookIsHalfPriceWhenTotalOover200zlotys() {
+        // given
+        Book book = givenBook(50L ,"49.90");
+
+        // when
+        Long orderId = placedOrder(book.getId(), 5);
+
+        // then
+        RichOrder order = orderOf(orderId);
+        assertEquals("224.55", order.getFinalPrice().toPlainString());
+    }
+
+    @Test
+    void cheapestBookIsFreeWhenTotalOover400zlotys() {
+        // given
+        Book book = givenBook(50L ,"49.90");
+
+        // when
+        Long orderId = placedOrder(book.getId(), 10);
+
+        // then
+        RichOrder order = orderOf(orderId);
+        assertEquals("449.10", order.getFinalPrice().toPlainString());
+    }
+
+    private Book givenBook(long available, String price) {
+        return bookRepository.save(new Book("Java Concurrency in Practice", 2006, new BigDecimal(price), available));
+    }
+
     private Book givenJavaConcurrency(long available) {
         return bookRepository.save(new Book("Java Concurrency in Practice", 2006, new BigDecimal("99.90"), available));
     }
@@ -231,9 +289,14 @@ class OrderServiceTest {
                 .builder()
                 .recipient(recipient(recipient))
                 .item(new OrderItemCommand(bookId, copies))
+                .delivery(Delivery.COURIER)
                 .build();
         PlaceOrderResponse response = service.placeOrder(command);
         return response.getRight();
+    }
+
+    private RichOrder orderOf(Long orderId) {
+        return queryOrderService.findById(orderId).get();
     }
 
     private Long availableCopiesOf(Book book) {

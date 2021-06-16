@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 import pl.kornijasz.books.commons.Either;
+import pl.kornijasz.books.order.domain.Delivery;
 import pl.kornijasz.books.order.domain.OrderStatus;
 import pl.kornijasz.books.order.domain.Recipient;
 
@@ -24,6 +25,7 @@ public interface ManipulateOrderUseCase {
         @Singular
         List<OrderItemCommand> items;
         Recipient recipient;
+        Delivery delivery;
     }
 
     @Value

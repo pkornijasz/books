@@ -1,6 +1,7 @@
 package pl.kornijasz.books.order.application;
 
 import lombok.Value;
+import pl.kornijasz.books.order.application.price.OrderPrice;
 import pl.kornijasz.books.order.domain.OrderItem;
 import pl.kornijasz.books.order.domain.OrderStatus;
 import pl.kornijasz.books.order.domain.Recipient;
@@ -16,10 +17,6 @@ public class RichOrder {
     Set<OrderItem> items;
     Recipient recipient;
     LocalDateTime createdAt;
-
-    public BigDecimal totalPrice() {
-        return items.stream()
-                .map(item -> item.getBook().getPrice().multiply(new BigDecimal(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+    OrderPrice orderPrice;
+    BigDecimal finalPrice;
 }
