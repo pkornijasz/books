@@ -5,8 +5,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
 import pl.kornijasz.books.catalog.domain.Book;
 
@@ -14,14 +15,23 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+//@WebMvcTest(
+//        value = {CatalogController.class},
+//        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = WebSecurityConfigurer.class)},
+//        excludeAutoConfiguration = {SecurityAutoConfiguration.class}
+//)
 @WebMvcTest(CatalogController.class)
+@ActiveProfiles("test")
+@WithMockUser
 class CatalogControllerWebTest {
+
+//    @MockBean
+//    UserEntityRepository repository;
 
     @MockBean
     CatalogUseCase catalogUseCase;

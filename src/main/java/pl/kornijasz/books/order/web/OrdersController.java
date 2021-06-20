@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pl.kornijasz.books.order.application.RichOrder;
@@ -40,15 +41,13 @@ public class OrdersController {
     @Secured({"ROLE_ADMIN", "ROLE_USER"})
 //    @PreAuthorize() @PostAuthorize()
     @GetMapping("/{id}")
-    public ResponseEntity<RichOrder> getOrderById(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        return queryOrder
-                .findById(id)
+    public ResponseEntity<RichOrder> getOrderById(@PathVariable Long id, @AuthenticationPrincipal UserDetails user) {
+        return queryOrder.findById(id)
                 .map(order -> authorize(order, user))
-                .orElse(ResponseEntity.notFound()
-                        .build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    private ResponseEntity<RichOrder> authorize(RichOrder order, User user) {
+    private ResponseEntity<RichOrder> authorize(RichOrder order, UserDetails user) {
         if (userSecurity.isOwnerOrAdmin(order.getRecipient().getEmail(), user)) {
             return ResponseEntity.ok(order);
         }
@@ -70,16 +69,25 @@ public class OrdersController {
         return new CreatedURI("/" + orderId).uri();
     }
 
-    @Secured({"ROLE_ADMIN", "ROLE_USER"})
+    @Secured({"ROLE_ADMIN"})
     @PatchMapping("/{id}/status")
-//    @ResponseStatus(ACCEPTED)
-    public ResponseEntity<Object> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Object> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body, @AuthenticationPrincipal UserDetails user) {
         String status = body.get("status");
         OrderStatus orderStatus = OrderStatus
                 .parseString(status)
                 .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "Unknown status: " + status));
-        // TODO: fix on security module
         UpdateStatusCommand command = new UpdateStatusCommand(id, orderStatus, user);
+        return manipulateOrder.updateOrderStatus(command)
+                .handle(
+                        newStatus -> ResponseEntity.accepted().build(),
+                        error -> ResponseEntity.status(error.getStatus()).build()
+                );
+    }
+
+    @Secured({"ROLE_ADMIN", "ROLE_USER"})
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<Object> cancelMyOrder(@PathVariable Long id, @AuthenticationPrincipal UserDetails user) {
+        UpdateStatusCommand command = new UpdateStatusCommand(id, OrderStatus.CANCELLED, user);
         return manipulateOrder.updateOrderStatus(command)
                 .handle(
                         newStatus -> ResponseEntity.accepted().build(),
