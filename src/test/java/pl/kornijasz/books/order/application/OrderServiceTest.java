@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.test.annotation.DirtiesContext;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
 import pl.kornijasz.books.catalog.db.BookJpaRepository;
@@ -16,6 +18,7 @@ import pl.kornijasz.books.order.domain.Recipient;
 
 import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,12 +62,12 @@ class OrderServiceTest {
     void userCanRevokeOrder() {
         // given
         Book effectiveJava = givenEffectiveJava(50L);
-        String email = "marek@example.org";
+        String marek = "marek@example.org";
         Long orderId = placedOrder(effectiveJava.getId(), 15);
         assertEquals(35L, availableCopiesOf(effectiveJava));
         // when
         // TODO fix on security module
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, email);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user(marek));
         service.updateOrderStatus(command);
         // then
         assertEquals(50L, availableCopiesOf(effectiveJava));
@@ -75,17 +78,17 @@ class OrderServiceTest {
     void userCannotRevokePaidOrder() {
         // given
         Book effectiveJava = givenEffectiveJava(50L);
-        String email = "marek@example.org";
-        Long orderId = placedOrder(effectiveJava.getId(), 15, email);
+        String marek = "marek@example.org";
+        Long orderId = placedOrder(effectiveJava.getId(), 15, marek);
         // when
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, email);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, user(marek));
         service.updateOrderStatus(command);
         // then
         assertEquals(35L, availableCopiesOf(effectiveJava));
         assertEquals(OrderStatus.PAID, queryOrderService.findById(orderId).get().getStatus());
         assertThrows(IllegalArgumentException.class, () -> {
-            UpdateStatusCommand commandCanel = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, email);
-            service.updateOrderStatus(commandCanel);
+            UpdateStatusCommand commandCancel = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user(marek));
+            service.updateOrderStatus(commandCancel);
         });
     }
 
@@ -93,18 +96,18 @@ class OrderServiceTest {
     void userCannotRevokeShippedOrder() {
         // given
         Book effectiveJava = givenEffectiveJava(50L);
-        String email = "marek@example.org";
-        Long orderId = placedOrder(effectiveJava.getId(), 15, email);
+        String marek = "marek@example.org";
+        Long orderId = placedOrder(effectiveJava.getId(), 15, marek);
         // when
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, email);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, user(marek));
         service.updateOrderStatus(command);
-        UpdateStatusCommand command1 = new UpdateStatusCommand(orderId, OrderStatus.SHIPPED, email);
+        UpdateStatusCommand command1 = new UpdateStatusCommand(orderId, OrderStatus.SHIPPED, user(marek));
         service.updateOrderStatus(command1);
         // then
         assertEquals(35L, availableCopiesOf(effectiveJava));
         assertEquals(OrderStatus.SHIPPED, queryOrderService.findById(orderId).get().getStatus());
         assertThrows(IllegalArgumentException.class, () -> {
-            UpdateStatusCommand commandCanel = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, email);
+            UpdateStatusCommand commandCanel = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user(marek));
             service.updateOrderStatus(commandCanel);
         });
     }
@@ -145,7 +148,7 @@ class OrderServiceTest {
         Long orderId = placedOrder(effectiveJava.getId(), 15, adam);
         assertEquals(35L, availableCopiesOf(effectiveJava));
         // when
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, "marek@example.com");
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, user("marek@example.org"));
         service.updateOrderStatus(command);
         // then
         assertEquals(35L, availableCopiesOf(effectiveJava));
@@ -153,7 +156,6 @@ class OrderServiceTest {
     }
 
     @Test
-    // TODO: poprawic w module security
     public void adminCanRevokeOtherUsersOrder() {
         // given
         Book effectiveJava = givenEffectiveJava(50L);
@@ -163,7 +165,7 @@ class OrderServiceTest {
 
         // when
         String admin = "admin@example.org";
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, admin);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.CANCELLED, adminUser());
         service.updateOrderStatus(command);
 
         // then
@@ -181,7 +183,7 @@ class OrderServiceTest {
 
         // when
         String admin = "admin@example.org";
-        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, admin);
+        UpdateStatusCommand command = new UpdateStatusCommand(orderId, OrderStatus.PAID, adminUser());
         service.updateOrderStatus(command);
 
         // then
@@ -270,6 +272,14 @@ class OrderServiceTest {
 
     private Book givenEffectiveJava(long available) {
         return bookRepository.save(new Book("Effective Java", 2005, new BigDecimal("199.90"), available));
+    }
+
+    private User user(String email) {
+        return new User(email, "", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+    }
+
+    private User adminUser() {
+        return new User("admin", "", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
     private Recipient recipient() {
