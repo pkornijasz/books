@@ -20,14 +20,10 @@ import java.util.Set;
 public class Book extends BaseEntity {
     @Column(unique = true)
     private String title;
-
     private Integer year;
-
     private BigDecimal price;
-
-    private Long available;
-
     private Long coverId;
+    private Long available;
 
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable
