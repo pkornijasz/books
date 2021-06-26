@@ -30,6 +30,7 @@ import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.*;
 @RestController
 @RequestMapping("/catalog")
 @AllArgsConstructor
+//@CrossOrigin(origins = "https://books-front-pk.herokuapp.com/", allowedHeaders = "*")
 public class CatalogController {
 
     private final CatalogUseCase catalog;

@@ -1,7 +1,7 @@
 package pl.kornijasz.books.security;
 
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import pl.kornijasz.books.user.db.UserEntityRepository;
 
-@AllArgsConstructor
 @Configuration
 @EnableGlobalMethodSecurity(securedEnabled = true) // domyślnie false!
 @EnableConfigurationProperties(AdminConfig.class)
@@ -30,6 +29,16 @@ public class BooksSecurityConfiguration extends WebSecurityConfigurerAdapter imp
 
     private final UserEntityRepository userEntityRepository;
     private final AdminConfig config;
+    private final String allowedOrigins;
+
+    BooksSecurityConfiguration(
+            @Value("${app.security.allowedOrigins}") String allowedOrigins,
+            UserEntityRepository userEntityRepository,
+            AdminConfig config) {
+        this.allowedOrigins = allowedOrigins;
+        this.userEntityRepository = userEntityRepository;
+        this.config = config;
+    }
 
     @Bean
     User systemUser() {
@@ -40,7 +49,7 @@ public class BooksSecurityConfiguration extends WebSecurityConfigurerAdapter imp
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedMethods("*")
-                .allowedOrigins("*");
+                .allowedOrigins(allowedOrigins);
     }
 
     @Override
