@@ -17,6 +17,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import pl.kornijasz.books.user.db.UserEntityRepository;
 
 @AllArgsConstructor
@@ -24,7 +26,7 @@ import pl.kornijasz.books.user.db.UserEntityRepository;
 @EnableGlobalMethodSecurity(securedEnabled = true) // domyślnie false!
 @EnableConfigurationProperties(AdminConfig.class)
 @Profile("!test")
-public class BooksSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class BooksSecurityConfiguration extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     private final UserEntityRepository userEntityRepository;
     private final AdminConfig config;
@@ -32,6 +34,13 @@ public class BooksSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     User systemUser() {
         return config.adminUser();
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedMethods("*")
+                .allowedOrigins("*");
     }
 
     @Override
@@ -57,7 +66,7 @@ public class BooksSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(authenticationProvider());
     }
 

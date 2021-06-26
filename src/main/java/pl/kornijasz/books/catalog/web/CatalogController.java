@@ -12,14 +12,18 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase.UpdateBookCommand;
+import pl.kornijasz.books.catalog.domain.Author;
 import pl.kornijasz.books.catalog.domain.Book;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.*;
 import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.CreateBookCommand;
@@ -33,17 +37,49 @@ public class CatalogController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Book> getAll(
+    public List<RestBook> getAll(
+            HttpServletRequest request,
             @RequestParam Optional<String> title,
             @RequestParam Optional<String> author) {
+        List<Book> books;
         if (title.isPresent() && author.isPresent()) {
-            return catalog.findByTitleAndAuthor(title.get(), author.get());
+            books = catalog.findByTitleAndAuthor(title.get(), author.get());
         } else if (title.isPresent()) {
-            return catalog.findByTitle(title.get());
+            books = catalog.findByTitle(title.get());
         } else if (author.isPresent()) {
-            return catalog.findByAuthor(author.get());
+            books = catalog.findByAuthor(author.get());
+        } else {
+            books = catalog.findAll();
         }
-        return catalog.findAll();
+        return books.stream()
+                .map(book -> toRestBook(book, request))
+                .collect(Collectors.toList());
+    }
+
+    private RestBook toRestBook(Book book, HttpServletRequest request) {
+        String coverUrl = Optional
+                .ofNullable(book.getCoverId())
+                .map(coverId -> ServletUriComponentsBuilder
+                    .fromContextPath(request)
+                    .path("/uploads/{id}/file")
+                    .build(coverId)
+                    .toASCIIString())
+                .orElse(null);
+        return new RestBook(
+                book.getId(),
+                book.getTitle(),
+                book.getYear(),
+                book.getPrice(),
+                coverUrl,
+                book.getAvailable(),
+                toRestAuthors(book.getAuthors())
+        );
+    }
+
+    private Set<RestAuthor> toRestAuthors(Set<Author> authors) {
+        return authors.stream()
+                .map(x -> new RestAuthor(x.getName()))
+                .collect(Collectors.toSet());
     }
 
     @GetMapping("/{id}")
