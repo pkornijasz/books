@@ -11,22 +11,21 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.kornijasz.books.catalog.application.port.CatalogUseCase;
-import pl.kornijasz.books.catalog.application.port.CatalogUseCase.UpdateBookCommand;
 import pl.kornijasz.books.catalog.domain.Author;
 import pl.kornijasz.books.catalog.domain.Book;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.*;
-import static pl.kornijasz.books.catalog.application.port.CatalogUseCase.CreateBookCommand;
 
 @RestController
 @RequestMapping("/catalog")
